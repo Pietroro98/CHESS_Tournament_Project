@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private final JWTUtil jwtUtil;
@@ -65,6 +65,7 @@ public class AuthController {
         {
             throw new BadRequestException("Attenzione, l'id non deve essere valorizzato in inserimento");
         }
+
         if (utenteRepository.existsByUsername(body.getUsername())) {
             throw new NotAllowedException("Attenzione, username già esistente");
         }
@@ -78,6 +79,7 @@ public class AuthController {
 
         String token = jwtUtil.generateToken(entity.getUsername());
         List<String> roles = entity.getRuoli().stream().map(Ruolo::getCodice).toList();
+
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(new UtenteAuthJWTResponseDTO(token, entity.getUsername(), roles));
     }

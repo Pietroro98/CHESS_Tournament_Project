@@ -39,10 +39,10 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/login", "/auth/register").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/tornei/**").hasAnyRole("ADMIN", "ORGANIZER")
-                .requestMatchers("/play/**").hasRole("PLAYER")
+                .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/tornei/**").hasAnyRole("ADMIN", "ORGANIZER")
+                .requestMatchers("/api/play/**").hasRole("PLAYER")
                 .anyRequest().authenticated())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
