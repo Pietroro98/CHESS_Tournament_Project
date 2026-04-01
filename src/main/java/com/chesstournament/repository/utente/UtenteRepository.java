@@ -1,13 +1,12 @@
 package com.chesstournament.repository.utente;
-
 import com.chesstournament.model.StatoUtente;
 import com.chesstournament.model.Utente;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 
-public interface UtenteRepository extends CrudRepository<Utente, Long> {
+public interface UtenteRepository extends JpaRepository<Utente, Long> {
 
     @EntityGraph(attributePaths = "ruoli")
     Optional<Utente> findByUsername(String username);
