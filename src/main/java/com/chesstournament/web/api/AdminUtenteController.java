@@ -1,6 +1,7 @@
 package com.chesstournament.web.api;
 import com.chesstournament.dto.ResponseJSON;
 import com.chesstournament.dto.UtenteDTO;
+import com.chesstournament.dto.UtenteUpdateDTO;
 import com.chesstournament.model.Utente;
 import com.chesstournament.service.UtenteService;
 import com.chesstournament.web.api.exception.IdNotNullForInsertException;
@@ -56,5 +57,19 @@ public class AdminUtenteController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ResponseJSON.success(201, "Utente creato con successo.", responseData));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseJSON<UtenteDTO>> update(@PathVariable Long id, @RequestBody @Valid UtenteUpdateDTO utenteInput) {
+        Utente utenteEsistente = utenteService.caricaSingoloUtente(id);
+        if (utenteEsistente == null) {
+            return ResponseEntity.notFound().build();
+        }
+        Utente utenteAggiornato = utenteService.aggiorna(utenteInput.buildUtenteModel(id), utenteInput.getRuoli());
+        UtenteDTO responseData = UtenteDTO.buildUtenteDTOFromModel(utenteAggiornato);
+
+        return ResponseEntity.ok(
+                ResponseJSON.success(200, "Utente aggiornato con successo.", responseData)
+        );
     }
 }

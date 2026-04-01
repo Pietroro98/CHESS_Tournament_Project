@@ -46,7 +46,7 @@ public class UtenteServiceImpl implements UtenteService {
 
     @Override
     @Transactional
-    public Utente aggiorna(Utente utenteInstance) {
+    public Utente aggiorna(Utente utenteInstance, List<Ruolo> ruoliItem) {
         Utente utenteReloaded = utenteRepository.findById(utenteInstance.getId()).orElse(null);
         if (utenteReloaded == null) {
             throw new RuntimeException("Elemento non trovato");
@@ -54,7 +54,34 @@ public class UtenteServiceImpl implements UtenteService {
         utenteReloaded.setNome(utenteInstance.getNome());
         utenteReloaded.setCognome(utenteInstance.getCognome());
         utenteReloaded.setUsername(utenteInstance.getUsername());
-        utenteReloaded.setRuoli(utenteInstance.getRuoli());
+
+        if (ruoliItem == null || ruoliItem.isEmpty()) {
+            throw new BadRequestException("Devi specificare almeno un ruolo");
+        }
+
+        Set<Ruolo> ruoliValidi = ruoliItem
+                .stream()
+                .map(ruoloInput -> {
+                    if (ruoloInput.getId() == null) {
+                        throw new BadRequestException("Ogni ruolo deve avere un id");
+                    }
+
+                    return ruoloRepository.findById(ruoloInput.getId())
+                            .orElseThrow(() -> new BadRequestException(
+                                    "Ruolo non valido con id: " + ruoloInput.getId()));
+                }).collect(Collectors.toSet());
+
+        boolean contieneAdmin = ruoliValidi.stream()
+                .anyMatch(ruolo ->
+                        Ruolo.ROLE_ADMIN.equals(ruolo.getCodice())
+                );
+
+        if (contieneAdmin) {
+            throw new NotAllowedException("Non è consentito assegnare il ruolo ADMIN");
+        }
+
+        utenteReloaded.setRuoli(ruoliValidi);
+
         return utenteRepository.save(utenteReloaded);
     }
 
@@ -80,8 +107,7 @@ public class UtenteServiceImpl implements UtenteService {
 
         boolean contieneRuoloNonConsentito = ruoliValidi.stream()
                 .anyMatch(ruolo ->
-                        !Ruolo.ROLE_PLAYER.equals(ruolo.getCodice()) &&
-                                !Ruolo.ROLE_ORGANIZER.equals(ruolo.getCodice())
+                        Ruolo.ROLE_ADMIN.equals(ruolo.getCodice())
                 );
 
         if (contieneRuoloNonConsentito) {

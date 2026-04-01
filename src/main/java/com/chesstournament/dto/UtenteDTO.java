@@ -179,4 +179,11 @@ public class UtenteDTO {
     public void setTorneoId(Long torneoId) {
         this.torneoId = torneoId;
     }
+
+    public List<Ruolo> getRuoli() {
+        if (ruoliIds == null) {
+            return null;
+        }
+        return Arrays.stream(ruoliIds).map(Ruolo::new).collect(Collectors.toList());
+    }
 }
