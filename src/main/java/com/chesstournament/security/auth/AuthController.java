@@ -1,13 +1,13 @@
 package com.chesstournament.security.auth;
 
-import com.chesstournament.dto.UtenteDTO;
 import com.chesstournament.model.Ruolo;
 import com.chesstournament.model.Utente;
 import com.chesstournament.repository.ruolo.RuoloRepository;
 import com.chesstournament.repository.utente.UtenteRepository;
 import com.chesstournament.security.JWTUtil;
-import com.chesstournament.security.dto.UtenteAuthDTO;
 import com.chesstournament.security.dto.UtenteAuthJWTResponseDTO;
+import com.chesstournament.security.dto.UtenteAuthLoginDTO;
+import com.chesstournament.security.dto.UtenteAuthRegisterDTO;
 import com.chesstournament.service.UtenteService;
 import com.chesstournament.web.api.exception.BadRequestException;
 import com.chesstournament.web.api.exception.NotAllowedException;
@@ -47,7 +47,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public Map<String, Object> loginHandler(@RequestBody @Valid UtenteAuthDTO body) {
+    public Map<String, Object> loginHandler(@RequestBody @Valid UtenteAuthLoginDTO body) {
         try {
             UsernamePasswordAuthenticationToken authInputToken =
                 new UsernamePasswordAuthenticationToken(body.getUsername(), body.getPassword());
@@ -60,7 +60,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UtenteAuthJWTResponseDTO> register(@RequestBody @Valid UtenteDTO body) {
+    public ResponseEntity<UtenteAuthJWTResponseDTO> register(@RequestBody @Valid UtenteAuthRegisterDTO body) {
         if (body.getId() != null)
         {
             throw new BadRequestException("Attenzione, l'id non deve essere valorizzato in inserimento");
@@ -73,7 +73,7 @@ public class AuthController {
         Ruolo defaultRole = ruoloRepository.findByCodice(Ruolo.ROLE_PLAYER)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Ruolo PLAYER non configurato"));
 
-        Utente entity = body.buildUtenteModel(false);
+        Utente entity = body.buildUtenteModel();
         entity.setRuoli(Set.of(defaultRole));
         utenteService.inserisciNuovo(entity);
 

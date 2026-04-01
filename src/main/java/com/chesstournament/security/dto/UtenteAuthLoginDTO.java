@@ -2,7 +2,7 @@ package com.chesstournament.security.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public class UtenteAuthDTO {
+public class UtenteAuthLoginDTO {
 
     @NotBlank
     private String username;
@@ -10,7 +10,7 @@ public class UtenteAuthDTO {
     @NotBlank
     private String password;
 
-    public UtenteAuthDTO() {
+    public UtenteAuthLoginDTO() {
     }
 
     public String getUsername() {
