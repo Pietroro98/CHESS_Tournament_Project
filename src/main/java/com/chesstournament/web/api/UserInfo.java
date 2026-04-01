@@ -4,7 +4,7 @@ import com.chesstournament.dto.TorneoDTO;
 import com.chesstournament.model.Ruolo;
 import com.chesstournament.model.Utente;
 import com.chesstournament.security.dto.UtenteInfoJWTResponseDTO;
-import com.chesstournament.service.UtenteService;
+import com.chesstournament.service.utente.UtenteService;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;

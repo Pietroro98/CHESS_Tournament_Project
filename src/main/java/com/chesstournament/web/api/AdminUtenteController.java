@@ -3,7 +3,7 @@ import com.chesstournament.dto.ResponseJSON;
 import com.chesstournament.dto.UtenteDTO;
 import com.chesstournament.dto.UtenteUpdateDTO;
 import com.chesstournament.model.Utente;
-import com.chesstournament.service.UtenteService;
+import com.chesstournament.service.utente.UtenteService;
 import com.chesstournament.web.api.exception.IdNotNullForInsertException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

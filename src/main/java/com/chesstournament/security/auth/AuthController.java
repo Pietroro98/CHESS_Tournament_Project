@@ -8,7 +8,7 @@ import com.chesstournament.security.JWTUtil;
 import com.chesstournament.security.dto.UtenteAuthJWTResponseDTO;
 import com.chesstournament.security.dto.UtenteAuthLoginDTO;
 import com.chesstournament.security.dto.UtenteAuthRegisterDTO;
-import com.chesstournament.service.UtenteService;
+import com.chesstournament.service.utente.UtenteService;
 import com.chesstournament.web.api.exception.BadRequestException;
 import com.chesstournament.web.api.exception.NotAllowedException;
 import jakarta.validation.Valid;

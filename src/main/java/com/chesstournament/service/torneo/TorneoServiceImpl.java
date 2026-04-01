@@ -5,7 +5,7 @@ import com.chesstournament.model.Torneo;
 import com.chesstournament.model.Utente;
 import com.chesstournament.repository.torneo.TorneoRepository;
 import com.chesstournament.security.SecurityUtils;
-import com.chesstournament.service.UtenteService;
+import com.chesstournament.service.utente.UtenteService;
 import com.chesstournament.web.api.exception.ForbiddenException;
 import com.chesstournament.web.api.exception.NotAllowedException;
 import com.chesstournament.web.api.exception.NotFoundException;

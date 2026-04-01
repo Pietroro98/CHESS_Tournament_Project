@@ -1,4 +1,4 @@
-package com.chesstournament.service;
+package com.chesstournament.service.ruolo;
 
 import com.chesstournament.model.Ruolo;
 import java.util.List;

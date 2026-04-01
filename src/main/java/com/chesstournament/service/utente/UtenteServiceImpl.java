@@ -1,4 +1,4 @@
-package com.chesstournament.service;
+package com.chesstournament.service.utente;
 
 import com.chesstournament.model.Ruolo;
 import com.chesstournament.model.StatoUtente;

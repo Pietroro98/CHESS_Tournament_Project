@@ -1,4 +1,4 @@
-package com.chesstournament.service;
+package com.chesstournament.service.ruolo;
 import com.chesstournament.model.Ruolo;
 import com.chesstournament.repository.ruolo.RuoloRepository;
 import org.springframework.beans.factory.annotation.Autowired;
