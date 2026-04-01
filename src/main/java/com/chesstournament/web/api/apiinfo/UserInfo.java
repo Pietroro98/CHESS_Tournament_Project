@@ -1,4 +1,4 @@
-package com.chesstournament.web.api;
+package com.chesstournament.web.api.apiinfo;
 import com.chesstournament.dto.ResponseJSON;
 import com.chesstournament.dto.TorneoDTO;
 import com.chesstournament.model.Ruolo;
