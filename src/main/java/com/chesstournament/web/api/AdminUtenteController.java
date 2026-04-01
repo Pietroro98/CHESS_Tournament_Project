@@ -72,4 +72,16 @@ public class AdminUtenteController {
                 ResponseJSON.success(200, "Utente aggiornato con successo.", responseData)
         );
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResponseJSON<UtenteDTO>> disabilita(@PathVariable Long id) {
+        Utente utenteEsistente = utenteService.caricaSingoloUtente(id);
+        if (utenteEsistente == null) {
+            return ResponseEntity.notFound().build();
+        }
+        utenteService.disabilita(id);
+        return ResponseEntity.ok(
+                ResponseJSON.success(200, "Utente disabilitato con successo.", null)
+        );
+    }
 }
