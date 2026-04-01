@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,7 @@ public class UtenteDTO {
     private StatoUtente stato;
     private Integer eloRating;
     private Double montePremi;
+    private List<RuoloDTO> ruolo;
     private Long[] ruoliIds;
     private Long torneoId;
 
@@ -75,7 +77,7 @@ public class UtenteDTO {
         dto.setDataRegistrazione(model.getDataRegistrazione());
         dto.setEloRating(model.getEloRating());
         dto.setMontePremi(model.getMontePremi());
-        dto.setRuoliIds(model.getRuoli().stream().map(Ruolo::getId).toArray(Long[]::new));
+        dto.setRuolo(RuoloDTO.createRuoloDTOListFromModelSet(model.getRuoli()));
         if (model.getTorneo() != null) {
             dto.setTorneoId(model.getTorneo().getId());
         }
@@ -152,6 +154,14 @@ public class UtenteDTO {
 
     public void setMontePremi(Double montePremi) {
         this.montePremi = montePremi;
+    }
+
+    public List<RuoloDTO> getRuolo() {
+        return ruolo;
+    }
+
+    public void setRuolo(List<RuoloDTO> ruolo) {
+        this.ruolo = ruolo;
     }
 
     public Long[] getRuoliIds() {

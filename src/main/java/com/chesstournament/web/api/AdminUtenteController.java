@@ -5,13 +5,14 @@ import com.chesstournament.model.Utente;
 import com.chesstournament.service.UtenteService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/utenti")
+@RequestMapping("/api/admin/utenti")
 public class AdminUtenteController {
 
    private final UtenteService utenteService;
@@ -28,7 +29,19 @@ public class AdminUtenteController {
                 .toList();
 
         return ResponseEntity.ok(
-                ResponseBusta.success(200, "Lista utenti recuperata con successo", responseData)
+                ResponseBusta.success(200, "Lista utenti recuperata con successo.", responseData)
+        );
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseBusta<UtenteDTO>> findById(@PathVariable Long id) {
+        Utente utente = utenteService.caricaSingoloUtente((id));
+        if (utente == null) {
+            return ResponseEntity.notFound().build();
+        }
+        UtenteDTO responseData = UtenteDTO.buildUtenteDTOFromModel(utente);
+
+        return ResponseEntity.ok(ResponseBusta.success(200, "Utente recuperato con successo.", responseData)
         );
     }
 }
