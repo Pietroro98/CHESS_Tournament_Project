@@ -1,10 +1,17 @@
 package com.chesstournament.service;
 
+import com.chesstournament.model.Ruolo;
 import com.chesstournament.model.StatoUtente;
 import com.chesstournament.model.Utente;
+import com.chesstournament.repository.ruolo.RuoloRepository;
 import com.chesstournament.repository.utente.UtenteRepository;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.chesstournament.web.api.exception.BadRequestException;
+import com.chesstournament.web.api.exception.NotAllowedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,10 +21,12 @@ public class UtenteServiceImpl implements UtenteService {
 
     private final UtenteRepository utenteRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RuoloRepository ruoloRepository;
 
-    public UtenteServiceImpl(UtenteRepository utenteRepository, PasswordEncoder passwordEncoder) {
+    public UtenteServiceImpl(UtenteRepository utenteRepository, PasswordEncoder passwordEncoder, RuoloRepository ruoloRepository) {
         this.utenteRepository = utenteRepository;
         this.passwordEncoder = passwordEncoder;
+        this.ruoloRepository = ruoloRepository;
     }
 
     @Override
@@ -37,7 +46,7 @@ public class UtenteServiceImpl implements UtenteService {
 
     @Override
     @Transactional
-    public void aggiorna(Utente utenteInstance) {
+    public Utente aggiorna(Utente utenteInstance) {
         Utente utenteReloaded = utenteRepository.findById(utenteInstance.getId()).orElse(null);
         if (utenteReloaded == null) {
             throw new RuntimeException("Elemento non trovato");
@@ -46,28 +55,52 @@ public class UtenteServiceImpl implements UtenteService {
         utenteReloaded.setCognome(utenteInstance.getCognome());
         utenteReloaded.setUsername(utenteInstance.getUsername());
         utenteReloaded.setRuoli(utenteInstance.getRuoli());
-        utenteRepository.save(utenteReloaded);
+        return utenteRepository.save(utenteReloaded);
     }
 
     @Override
-    public void inserisciNuovo(Utente entity) {
+    public Utente inserisciNuovo(Utente entity)
+    {
         entity.setStato(StatoUtente.ATTIVO);
         entity.setPassword(passwordEncoder.encode(entity.getPassword()));
         entity.setDataRegistrazione(LocalDate.now());
         entity.setEloRating(0);
         entity.setMontePremi(0d);
         entity.setTorneo(null);
-        utenteRepository.save(entity);
+
+        if (entity.getRuoli() == null || entity.getRuoli().isEmpty()) {
+            throw new RuntimeException("L'utente deve avere almeno un ruolo.");
+        }
+
+        Set<Ruolo> ruoliValidi = entity.getRuoli().stream()
+                .map(ruoloInput -> ruoloRepository.findById(ruoloInput.getId())
+                        .orElseThrow(() -> new BadRequestException(
+                                "Ruolo non valido con id: " + ruoloInput.getId())))
+                .collect(Collectors.toSet());
+
+        boolean contieneRuoloNonConsentito = ruoliValidi.stream()
+                .anyMatch(ruolo ->
+                        !Ruolo.ROLE_PLAYER.equals(ruolo.getCodice()) &&
+                                !Ruolo.ROLE_ORGANIZER.equals(ruolo.getCodice())
+                );
+
+        if (contieneRuoloNonConsentito) {
+            throw new NotAllowedException("L'admin può creare solo utenti con ruolo PLAYER o ORGANIZER");
+        }
+
+        entity.setRuoli(ruoliValidi);
+
+        return utenteRepository.save(entity);
     }
 
     @Override
-    public void disabilita(Long id) {
+    public Utente disabilita(Long id) {
         Utente entity = caricaSingoloUtente(id);
         if (entity == null) {
             throw new RuntimeException("Elemento non trovato.");
         }
         entity.setStato(StatoUtente.DISABILITATO);
-        utenteRepository.save(entity);
+        return utenteRepository.save(entity);
     }
 
     @Override
@@ -82,7 +115,7 @@ public class UtenteServiceImpl implements UtenteService {
 
     @Override
     @Transactional
-    public void changeUserAbilitation(Long utenteInstanceId) {
+    public Utente changeUserAbilitation(Long utenteInstanceId) {
         Utente utenteInstance = caricaSingoloUtente(utenteInstanceId);
         if (utenteInstance == null) {
             throw new RuntimeException("Elemento non trovato.");
@@ -92,6 +125,7 @@ public class UtenteServiceImpl implements UtenteService {
         } else if (StatoUtente.DISABILITATO.equals(utenteInstance.getStato())) {
             utenteInstance.setStato(StatoUtente.ATTIVO);
         }
+        return utenteRepository.save(utenteInstance);
     }
 
     @Override

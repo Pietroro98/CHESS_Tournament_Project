@@ -1,5 +1,5 @@
 package com.chesstournament.web.api;
-import com.chesstournament.dto.ResponseBusta;
+import com.chesstournament.dto.ResponseJSON;
 import com.chesstournament.dto.TorneoDTO;
 import com.chesstournament.model.Ruolo;
 import com.chesstournament.model.Utente;
@@ -28,7 +28,7 @@ public class UserInfo {
     }
 
     @GetMapping("/userInfo")
-    public ResponseEntity<ResponseBusta<UtenteInfoJWTResponseDTO>> getUserInfo() {
+    public ResponseEntity<ResponseJSON<UtenteInfoJWTResponseDTO>> getUserInfo() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Utente utenteLoggato = utenteService.findByUsername(username);
         List<String> ruoli = utenteLoggato.getRuoli().stream().map(Ruolo::getCodice).toList();
@@ -52,7 +52,7 @@ public class UserInfo {
         );
 
         return ResponseEntity.ok(
-                ResponseBusta.success(200, "Informazioni utente recuperate con successo", responseData)
+                ResponseJSON.success(200, "Informazioni utente recuperate con successo", responseData)
         );
     }
 }

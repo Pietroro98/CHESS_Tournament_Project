@@ -1,6 +1,6 @@
 package com.chesstournament.security;
 
-import com.chesstournament.dto.ResponseBusta;
+import com.chesstournament.dto.ResponseJSON;
 import com.chesstournament.web.api.exception.ForbiddenException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
@@ -34,7 +34,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         new ObjectMapper().writeValue(
             response.getOutputStream(),
-            ResponseBusta.error(HttpServletResponse.SC_FORBIDDEN, forbiddenException.getMessage())
+            ResponseJSON.error(HttpServletResponse.SC_FORBIDDEN, forbiddenException.getMessage())
         );
     }
 }

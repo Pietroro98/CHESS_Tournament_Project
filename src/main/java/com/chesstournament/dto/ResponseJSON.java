@@ -1,30 +1,30 @@
 package com.chesstournament.dto;
 
-public class ResponseBusta<T> {
+public class ResponseJSON<T> {
 
     private Integer status;
     private String messaggio;
     private T data;
 
-    public ResponseBusta() {
+    public ResponseJSON() {
     }
 
-    public ResponseBusta(Integer status, String messaggio, T data) {
+    public ResponseJSON(Integer status, String messaggio, T data) {
         this.status = status;
         this.messaggio = messaggio;
         this.data = data;
     }
 
-    public static <T> ResponseBusta<T> of(String messaggio, T data) {
-        return new ResponseBusta<>(null, messaggio, data);
+    public static <T> ResponseJSON<T> of(String messaggio, T data) {
+        return new ResponseJSON<>(null, messaggio, data);
     }
 
-    public static <T> ResponseBusta<T> success(int status, String messaggio, T data) {
-        return new ResponseBusta<>(status, messaggio, data);
+    public static <T> ResponseJSON<T> success(int status, String messaggio, T data) {
+        return new ResponseJSON<>(status, messaggio, data);
     }
 
-    public static <T> ResponseBusta<T> error(int status, String messaggio) {
-        return new ResponseBusta<>(status, messaggio, null);
+    public static <T> ResponseJSON<T> error(int status, String messaggio) {
+        return new ResponseJSON<>(status, messaggio, null);
     }
 
     public Integer getStatus() {

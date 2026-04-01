@@ -1,6 +1,6 @@
 package com.chesstournament.web.api.exception;
 
-import com.chesstournament.dto.ResponseBusta;
+import com.chesstournament.dto.ResponseJSON;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
@@ -15,7 +15,7 @@ import org.springframework.web.context.request.WebRequest;
 public class CustomExceptionHandler  {
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<ResponseBusta<List<String>>> handleValidationExceptions(
+	public ResponseEntity<ResponseJSON<List<String>>> handleValidationExceptions(
 			MethodArgumentNotValidException ex,
 			WebRequest request) {
 
@@ -27,58 +27,58 @@ public class CustomExceptionHandler  {
 
 		return ResponseEntity
 				.status(HttpStatus.BAD_REQUEST)
-				.body(ResponseBusta.success(HttpStatus.BAD_REQUEST.value(), "Errore di validazione", errors));
+				.body(ResponseJSON.success(HttpStatus.BAD_REQUEST.value(), "Errore di validazione", errors));
 	}
 
 	@ExceptionHandler(NotFoundException.class)
-	public ResponseEntity<ResponseBusta<Void>> handleAgendaNotFoundException(NotFoundException ex, WebRequest request) {
+	public ResponseEntity<ResponseJSON<Void>> handleAgendaNotFoundException(NotFoundException ex, WebRequest request) {
 		return ResponseEntity
 				.status(HttpStatus.NOT_FOUND)
-				.body(ResponseBusta.error(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
+				.body(ResponseJSON.error(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
 	}
 
 	@ExceptionHandler(NotAllowedException.class)
-	public ResponseEntity<ResponseBusta<Void>> handleNotAllowedException(NotAllowedException ex, WebRequest request) {
+	public ResponseEntity<ResponseJSON<Void>> handleNotAllowedException(NotAllowedException ex, WebRequest request) {
 		return ResponseEntity
 				.status(HttpStatus.UNPROCESSABLE_ENTITY)
-				.body(ResponseBusta.error(HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.getMessage()));
+				.body(ResponseJSON.error(HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.getMessage()));
 	}
 
 	@ExceptionHandler(BadRequestException.class)
-	public ResponseEntity<ResponseBusta<Void>> handleBadRequestException(BadRequestException ex, WebRequest request) {
+	public ResponseEntity<ResponseJSON<Void>> handleBadRequestException(BadRequestException ex, WebRequest request) {
 		return ResponseEntity
 				.status(HttpStatus.BAD_REQUEST)
-				.body(ResponseBusta.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+				.body(ResponseJSON.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
 	}
 
 
 	@ExceptionHandler(IdNotNullForInsertException.class)
-	public ResponseEntity<ResponseBusta<Void>> handleIdNotNullForInsertException(IdNotNullForInsertException ex,
-			WebRequest request) {
+	public ResponseEntity<ResponseJSON<Void>> handleIdNotNullForInsertException(IdNotNullForInsertException ex,
+																				WebRequest request) {
 		return ResponseEntity
 				.status(HttpStatus.UNPROCESSABLE_ENTITY)
-				.body(ResponseBusta.error(HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.getMessage()));
+				.body(ResponseJSON.error(HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.getMessage()));
 	}
 
 	@ExceptionHandler(IllegalArgumentException.class)
-	public ResponseEntity<ResponseBusta<Void>> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+	public ResponseEntity<ResponseJSON<Void>> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
 		return ResponseEntity
 				.status(HttpStatus.BAD_REQUEST)
-				.body(ResponseBusta.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+				.body(ResponseJSON.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
 	}
 
 	@ExceptionHandler(ForbiddenException.class)
-	public ResponseEntity<ResponseBusta<Void>> handleInsufficientAuthoritiesException(ForbiddenException ex, WebRequest request) {
+	public ResponseEntity<ResponseJSON<Void>> handleInsufficientAuthoritiesException(ForbiddenException ex, WebRequest request) {
 		return ResponseEntity
 				.status(HttpStatus.FORBIDDEN)
-				.body(ResponseBusta.error(HttpStatus.FORBIDDEN.value(), ex.getMessage()));
+				.body(ResponseJSON.error(HttpStatus.FORBIDDEN.value(), ex.getMessage()));
 	}
 
 	@ExceptionHandler(AccessDeniedException.class)
-	public ResponseEntity<ResponseBusta<Void>> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
+	public ResponseEntity<ResponseJSON<Void>> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
 		return ResponseEntity
 				.status(HttpStatus.FORBIDDEN)
-				.body(ResponseBusta.error(HttpStatus.FORBIDDEN.value(), ex.getMessage()));
+				.body(ResponseJSON.error(HttpStatus.FORBIDDEN.value(), ex.getMessage()));
 	}
 
 }

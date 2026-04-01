@@ -1,13 +1,13 @@
 package com.chesstournament.web.api;
-import com.chesstournament.dto.ResponseBusta;
+import com.chesstournament.dto.ResponseJSON;
 import com.chesstournament.dto.UtenteDTO;
 import com.chesstournament.model.Utente;
 import com.chesstournament.service.UtenteService;
+import com.chesstournament.web.api.exception.IdNotNullForInsertException;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,26 +22,39 @@ public class AdminUtenteController {
     }
 
     @GetMapping
-    public ResponseEntity<ResponseBusta<List<UtenteDTO>>> findAll() {
+    public ResponseEntity<ResponseJSON<List<UtenteDTO>>> findAll() {
         List<UtenteDTO> responseData =  utenteService.listAllUtenti()
                 .stream()
                 .map(UtenteDTO::buildUtenteDTOFromModel)
                 .toList();
 
         return ResponseEntity.ok(
-                ResponseBusta.success(200, "Lista utenti recuperata con successo.", responseData)
+                ResponseJSON.success(200, "Lista utenti recuperata con successo.", responseData)
         );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseBusta<UtenteDTO>> findById(@PathVariable Long id) {
+    public ResponseEntity<ResponseJSON<UtenteDTO>> findById(@PathVariable Long id) {
         Utente utente = utenteService.caricaSingoloUtente((id));
         if (utente == null) {
             return ResponseEntity.notFound().build();
         }
         UtenteDTO responseData = UtenteDTO.buildUtenteDTOFromModel(utente);
 
-        return ResponseEntity.ok(ResponseBusta.success(200, "Utente recuperato con successo.", responseData)
+        return ResponseEntity.ok(ResponseJSON.success(200, "Utente recuperato con successo.", responseData)
         );
+    }
+
+    @PostMapping
+    public ResponseEntity<ResponseJSON<UtenteDTO>> create(@RequestBody @Valid UtenteDTO utenteInput) {
+        if (utenteInput.getId() != null) {
+            throw new IdNotNullForInsertException("Non è ammesso fornire un id per la creazione");
+        }
+        Utente utenteInserito = utenteService.inserisciNuovo(utenteInput.buildUtenteModel(false));
+        UtenteDTO responseData = UtenteDTO.buildUtenteDTOFromModel(utenteInserito);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ResponseJSON.success(201, "Utente creato con successo.", responseData));
     }
 }
