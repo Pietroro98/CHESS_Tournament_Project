@@ -1,5 +1,6 @@
 package com.chesstournament.web.api;
 import com.chesstournament.dto.ResponseBusta;
+import com.chesstournament.dto.TorneoDTO;
 import com.chesstournament.model.Ruolo;
 import com.chesstournament.model.Utente;
 import com.chesstournament.security.dto.UtenteInfoJWTResponseDTO;
@@ -31,11 +32,22 @@ public class UserInfo {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Utente utenteLoggato = utenteService.findByUsername(username);
         List<String> ruoli = utenteLoggato.getRuoli().stream().map(Ruolo::getCodice).toList();
+        TorneoDTO torneo = utenteLoggato.getTorneo() != null
+                ? TorneoDTO.buildTorneoDTOFromModel(utenteLoggato.getTorneo())
+                : null;
+        List<TorneoDTO> torneiCreati = utenteLoggato.getTorneiCreati().stream()
+                .map(TorneoDTO::buildTorneoDTOFromModel)
+                .toList();
 
         UtenteInfoJWTResponseDTO responseData = new UtenteInfoJWTResponseDTO(
                 utenteLoggato.getNome(),
                 utenteLoggato.getCognome(),
                 utenteLoggato.getUsername(),
+                utenteLoggato.getStato(),
+                utenteLoggato.getEloRating(),
+                utenteLoggato.getMontePremi(),
+                torneo,
+                torneiCreati,
                 ruoli
         );
 

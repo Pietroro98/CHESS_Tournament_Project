@@ -1,5 +1,7 @@
 package com.chesstournament.security.dto;
 
+import com.chesstournament.dto.TorneoDTO;
+import com.chesstournament.model.StatoUtente;
 import java.util.List;
 
 public class UtenteInfoJWTResponseDTO {
@@ -8,12 +10,24 @@ public class UtenteInfoJWTResponseDTO {
     private String cognome;
     private String type = "Bearer";
     private String username;
+    private StatoUtente stato;
+    private Integer eloRating;
+    private Double montePremi;
+    private TorneoDTO torneo;
+    private List<TorneoDTO> torneiCreati;
     private List<String> roles;
 
-    public UtenteInfoJWTResponseDTO(String nome, String cognome, String username, List<String> roles) {
+    public UtenteInfoJWTResponseDTO(String nome, String cognome, String username, StatoUtente stato,
+                                    Integer eloRating, Double montePremi, TorneoDTO torneo,
+                                    List<TorneoDTO> torneiCreati, List<String> roles) {
         this.nome = nome;
         this.cognome = cognome;
         this.username = username;
+        this.stato = stato;
+        this.eloRating = eloRating;
+        this.montePremi = montePremi;
+        this.torneo = torneo;
+        this.torneiCreati = torneiCreati;
         this.roles = roles;
     }
 
@@ -37,6 +51,10 @@ public class UtenteInfoJWTResponseDTO {
         return roles;
     }
 
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
+    }
+
     public String getNome() {
         return nome;
     }
@@ -51,5 +69,45 @@ public class UtenteInfoJWTResponseDTO {
 
     public void setCognome(String cognome) {
         this.cognome = cognome;
+    }
+
+    public StatoUtente getStato() {
+        return stato;
+    }
+
+    public void setStato(StatoUtente stato) {
+        this.stato = stato;
+    }
+
+    public Integer getEloRating() {
+        return eloRating;
+    }
+
+    public void setEloRating(Integer eloRating) {
+        this.eloRating = eloRating;
+    }
+
+    public Double getMontePremi() {
+        return montePremi;
+    }
+
+    public void setMontePremi(Double montePremi) {
+        this.montePremi = montePremi;
+    }
+
+    public TorneoDTO getTorneo() {
+        return torneo;
+    }
+
+    public void setTorneo(TorneoDTO torneo) {
+        this.torneo = torneo;
+    }
+
+    public List<TorneoDTO> getTorneiCreati() {
+        return torneiCreati;
+    }
+
+    public void setTorneiCreati(List<TorneoDTO> torneiCreati) {
+        this.torneiCreati = torneiCreati;
     }
 }
