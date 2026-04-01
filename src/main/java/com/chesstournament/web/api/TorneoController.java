@@ -50,4 +50,11 @@ public class TorneoController {
         return ResponseEntity
                 .ok(ResponseJSON.success(200, "Torneo aggiornato con successo.", responseData));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResponseJSON<Void>> delete(@PathVariable Long id) {
+        torneoService.elimina(id, null);
+        return ResponseEntity
+                .ok(ResponseJSON.success(200, "Torneo eliminato con successo.", null));
+    }
 }
