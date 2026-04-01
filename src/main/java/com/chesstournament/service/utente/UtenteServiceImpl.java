@@ -176,4 +176,17 @@ public class UtenteServiceImpl implements UtenteService {
     public Utente findByUsername(String username) {
         return utenteRepository.findByUsername(username).orElse(null);
     }
+
+    @Override
+    @Transactional
+    public Utente ricaricaMontepremi(Double importo) {
+        String username = securityUtils.getUsername();
+        Utente utente = utenteRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Utente autenticato non trovato."));
+
+        double montePremiAttuale = utente.getMontePremi() != null ? utente.getMontePremi() : 0d;
+        utente.setMontePremi(montePremiAttuale + importo);
+
+        return utenteRepository.save(utente);
+    }
 }

@@ -14,4 +14,5 @@ public interface UtenteService {
     Utente eseguiAccesso(String username, String password);
     Utente changeUserAbilitation(Long id);
     Utente findByUsername(String username);
+    Utente ricaricaMontepremi(Double importo);
 }
