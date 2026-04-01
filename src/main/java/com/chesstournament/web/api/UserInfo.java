@@ -1,9 +1,12 @@
 package com.chesstournament.web.api;
+import com.chesstournament.dto.ResponseBusta;
 import com.chesstournament.model.Ruolo;
 import com.chesstournament.model.Utente;
 import com.chesstournament.security.dto.UtenteInfoJWTResponseDTO;
 import com.chesstournament.service.UtenteService;
 import java.util.List;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,16 +29,20 @@ public class UserInfo {
     }
 
     @GetMapping("/userInfo")
-    public ResponseEntity<UtenteInfoJWTResponseDTO> getUserInfo() {
+    public ResponseEntity<ResponseBusta<UtenteInfoJWTResponseDTO>> getUserInfo() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Utente utenteLoggato = utenteService.findByUsername(username);
         List<String> ruoli = utenteLoggato.getRuoli().stream().map(Ruolo::getCodice).toList();
 
-        return ResponseEntity.ok(new UtenteInfoJWTResponseDTO(
-            utenteLoggato.getNome(),
-            utenteLoggato.getCognome(),
-            utenteLoggato.getUsername(),
-            ruoli
-        ));
+        UtenteInfoJWTResponseDTO responseData = new UtenteInfoJWTResponseDTO(
+                utenteLoggato.getNome(),
+                utenteLoggato.getCognome(),
+                utenteLoggato.getUsername(),
+                ruoli
+        );
+
+        return ResponseEntity.ok(
+                ResponseBusta.success(200, "Informazioni utente recuperate con successo", responseData)
+        );
     }
 }

@@ -1,12 +1,12 @@
 package com.chesstournament.security;
 
+import com.chesstournament.dto.ResponseBusta;
+import com.chesstournament.web.api.exception.ForbiddenException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -28,16 +28,13 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth != null ? auth.getName() : "anonymous";
+        ForbiddenException forbiddenException = new ForbiddenException(username);
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("status", HttpServletResponse.SC_FORBIDDEN);
-        body.put("error", "Forbidden");
-        body.put("message", "Insufficient authorities for user '" + username + "' to access this resource");
-        body.put("path", request.getServletPath());
-
-        new ObjectMapper().writeValue(response.getOutputStream(), body);
+        new ObjectMapper().writeValue(
+            response.getOutputStream(),
+            ResponseBusta.error(HttpServletResponse.SC_FORBIDDEN, forbiddenException.getMessage())
+        );
     }
 }

@@ -1,5 +1,8 @@
 package com.chesstournament.web.api.exception;
 
+import com.chesstournament.dto.ResponseBusta;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -8,100 +11,74 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
-import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 @ControllerAdvice
 public class CustomExceptionHandler  {
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<Object> handleValidationExceptions(
+	public ResponseEntity<ResponseBusta<List<String>>> handleValidationExceptions(
 			MethodArgumentNotValidException ex,
 			WebRequest request) {
 
-		Map<String, Object> body = new LinkedHashMap<>();
-		body.put("timestamp", LocalDateTime.now());
-		body.put("status", HttpStatus.BAD_REQUEST.value());
-
-		// Get all errors
 		List<String> errors = ex.getBindingResult()
 				.getFieldErrors()
 				.stream()
 				.map(x -> x.getDefaultMessage())
 				.collect(Collectors.toList());
 
-		body.put("errors", errors);
-
-		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(ResponseBusta.success(HttpStatus.BAD_REQUEST.value(), "Errore di validazione", errors));
 	}
 
 	@ExceptionHandler(NotFoundException.class)
-	public ResponseEntity<Object> handleAgendaNotFoundException(NotFoundException ex, WebRequest request) {
-
-		Map<String, Object> body = new LinkedHashMap<>();
-		body.put("timestamp", LocalDateTime.now());
-		body.put("message", ex.getMessage());
-		body.put("status", HttpStatus.NOT_FOUND);
-
-		return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+	public ResponseEntity<ResponseBusta<Void>> handleAgendaNotFoundException(NotFoundException ex, WebRequest request) {
+		return ResponseEntity
+				.status(HttpStatus.NOT_FOUND)
+				.body(ResponseBusta.error(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
 	}
 
 	@ExceptionHandler(NotAllowedException.class)
-	public ResponseEntity<Object> handleNotAllowedException(NotAllowedException ex, WebRequest request) {
-		Map<String, Object> body = new LinkedHashMap<>();
-		body.put("timestamp", LocalDateTime.now());
-		body.put("message", ex.getMessage());
-		body.put("status", HttpStatus.UNPROCESSABLE_ENTITY);
-
-		return new ResponseEntity<>(body, HttpStatus.UNPROCESSABLE_ENTITY);
+	public ResponseEntity<ResponseBusta<Void>> handleNotAllowedException(NotAllowedException ex, WebRequest request) {
+		return ResponseEntity
+				.status(HttpStatus.UNPROCESSABLE_ENTITY)
+				.body(ResponseBusta.error(HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.getMessage()));
 	}
 
 	@ExceptionHandler(BadRequestException.class)
-	public ResponseEntity<Object> handleBadRequestException(BadRequestException ex, WebRequest request) {
-		Map<String, Object> body = new LinkedHashMap<>();
-		body.put("timestamp", LocalDateTime.now());
-		body.put("message", ex.getMessage());
-		body.put("status", HttpStatus.BAD_REQUEST);
-
-		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+	public ResponseEntity<ResponseBusta<Void>> handleBadRequestException(BadRequestException ex, WebRequest request) {
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(ResponseBusta.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
 	}
 
 
 	@ExceptionHandler(IdNotNullForInsertException.class)
-	public ResponseEntity<Object> handleIdNotNullForInsertException(IdNotNullForInsertException ex,
+	public ResponseEntity<ResponseBusta<Void>> handleIdNotNullForInsertException(IdNotNullForInsertException ex,
 			WebRequest request) {
-
-		Map<String, Object> body = new LinkedHashMap<>();
-		body.put("timestamp", LocalDateTime.now());
-		body.put("message", ex.getMessage());
-		body.put("status", HttpStatus.UNPROCESSABLE_ENTITY);
-
-		return new ResponseEntity<>(body, HttpStatus.UNPROCESSABLE_ENTITY);
+		return ResponseEntity
+				.status(HttpStatus.UNPROCESSABLE_ENTITY)
+				.body(ResponseBusta.error(HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.getMessage()));
 	}
 
 	@ExceptionHandler(IllegalArgumentException.class)
-	public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+	public ResponseEntity<ResponseBusta<Void>> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(ResponseBusta.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+	}
 
-		Map<String, Object> body = new LinkedHashMap<>();
-		body.put("timestamp", LocalDateTime.now());
-		body.put("message", ex.getMessage());
-		body.put("status", HttpStatus.BAD_REQUEST);
-
-		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+	@ExceptionHandler(ForbiddenException.class)
+	public ResponseEntity<ResponseBusta<Void>> handleInsufficientAuthoritiesException(ForbiddenException ex, WebRequest request) {
+		return ResponseEntity
+				.status(HttpStatus.FORBIDDEN)
+				.body(ResponseBusta.error(HttpStatus.FORBIDDEN.value(), ex.getMessage()));
 	}
 
 	@ExceptionHandler(AccessDeniedException.class)
-	public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
-
-		Map<String, Object> body = new LinkedHashMap<>();
-		body.put("timestamp", LocalDateTime.now());
-		body.put("message", ex.getMessage());
-		body.put("status", HttpStatus.FORBIDDEN.value());
-
-		return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+	public ResponseEntity<ResponseBusta<Void>> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
+		return ResponseEntity
+				.status(HttpStatus.FORBIDDEN)
+				.body(ResponseBusta.error(HttpStatus.FORBIDDEN.value(), ex.getMessage()));
 	}
 
 }
