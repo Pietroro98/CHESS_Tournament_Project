@@ -73,8 +73,7 @@ public class UtenteServiceImpl implements UtenteService {
 
         boolean contieneAdmin = ruoliValidi.stream()
                 .anyMatch(ruolo ->
-                        !Ruolo.ROLE_ADMIN.equals(ruolo.getCodice()) &&
-                                !Ruolo.ROLE_PLAYER.equals(ruolo.getCodice())
+                        Ruolo.ROLE_ADMIN.equals(ruolo.getCodice())
                 );
 
         if (contieneAdmin) {
@@ -108,7 +107,8 @@ public class UtenteServiceImpl implements UtenteService {
 
         boolean contieneRuoloNonConsentito = ruoliValidi.stream()
                 .anyMatch(ruolo ->
-                        Ruolo.ROLE_ADMIN.equals(ruolo.getCodice())
+                        !Ruolo.ROLE_ADMIN.equals(ruolo.getCodice()) &&
+                                !Ruolo.ROLE_PLAYER.equals(ruolo.getCodice())
                 );
 
         if (contieneRuoloNonConsentito) {
