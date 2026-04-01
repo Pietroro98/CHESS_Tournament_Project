@@ -5,12 +5,14 @@ import com.chesstournament.model.StatoUtente;
 import com.chesstournament.model.Utente;
 import com.chesstournament.repository.ruolo.RuoloRepository;
 import com.chesstournament.repository.utente.UtenteRepository;
+import com.chesstournament.security.SecurityUtils;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.chesstournament.web.api.exception.BadRequestException;
+import com.chesstournament.web.api.exception.ForbiddenException;
 import com.chesstournament.web.api.exception.NotAllowedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,11 +24,14 @@ public class UtenteServiceImpl implements UtenteService {
     private final UtenteRepository utenteRepository;
     private final PasswordEncoder passwordEncoder;
     private final RuoloRepository ruoloRepository;
+    private final SecurityUtils securityUtils;
 
-    public UtenteServiceImpl(UtenteRepository utenteRepository, PasswordEncoder passwordEncoder, RuoloRepository ruoloRepository) {
+    public UtenteServiceImpl(UtenteRepository utenteRepository, PasswordEncoder passwordEncoder,
+                             RuoloRepository ruoloRepository, SecurityUtils securityUtils) {
         this.utenteRepository = utenteRepository;
         this.passwordEncoder = passwordEncoder;
         this.ruoloRepository = ruoloRepository;
+        this.securityUtils = securityUtils;
     }
 
     @Override
@@ -51,9 +56,21 @@ public class UtenteServiceImpl implements UtenteService {
         if (utenteReloaded == null) {
             throw new RuntimeException("Elemento non trovato");
         }
+
+        boolean isAdmin = securityUtils.isAdmin();
+        String usernameLoggato = securityUtils.getUsername();
+
+        if (!isAdmin && !usernameLoggato.equals(utenteReloaded.getUsername())) {
+            throw new ForbiddenException(usernameLoggato);
+        }
+
         utenteReloaded.setNome(utenteInstance.getNome());
         utenteReloaded.setCognome(utenteInstance.getCognome());
         utenteReloaded.setUsername(utenteInstance.getUsername());
+
+        if (!isAdmin) {
+            return utenteRepository.save(utenteReloaded);
+        }
 
         if (ruoliItem == null || ruoliItem.isEmpty()) {
             throw new BadRequestException("Devi specificare almeno un ruolo");
