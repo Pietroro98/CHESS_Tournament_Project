@@ -205,6 +205,10 @@ public class UtenteServiceImpl implements UtenteService {
         Torneo torneo = torneoRepository.findById(idTorneo)
                 .orElseThrow(() -> new RuntimeException("Torneo non trovato."));
 
+        if(torneo.getPartecipanti() != null && torneo.getPartecipanti().size() >= torneo.getMaxGiocatori()) {
+            throw new NotAllowedException("Il torneo ha già raggiunto il numero massimo di partecipanti.");
+        }
+
         if (StatoTorneo.IN_CORSO.equals(torneo.getStato()) || StatoTorneo.CONCLUSO.equals(torneo.getStato())) {
             throw new NotAllowedException("Non è possibile iscriversi a un torneo già avviato o concluso.");
         }
