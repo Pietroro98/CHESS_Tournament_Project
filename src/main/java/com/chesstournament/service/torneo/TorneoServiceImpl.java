@@ -61,6 +61,13 @@ public class TorneoServiceImpl implements TorneoService {
             torneo.setStato(StatoTorneo.APERTO);
         }
 
+        if(torneoRepository.existsByDenominazioneAndEloMinimoAndStatoNot(
+                dto.getDenominazione(),
+                dto.getEloMinimo(),
+                StatoTorneo.CONCLUSO  )){
+            throw new NotAllowedException("Esiste già un torneo con la stessa denominazione e elo minimo che non è concluso.");
+        }
+
         return torneoRepository.save(torneo);
     }
 
