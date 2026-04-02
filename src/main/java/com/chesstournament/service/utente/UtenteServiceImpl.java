@@ -275,6 +275,9 @@ public class UtenteServiceImpl implements UtenteService {
             throw new BadRequestException("Non è possibile giocare una partita se non ci sono almeno 2 partecipanti al torneo.");
         }
 
+        if(utente.getMontePremi().doubleValue() == 0) {
+            throw new BadRequestException("Credito esaurito. Ricarica il tuo montepremi per poter giocare.");
+        }
         String messaggio = simulaPartita(utente);
 
         Utente salvato = utenteRepository.save(utente);
