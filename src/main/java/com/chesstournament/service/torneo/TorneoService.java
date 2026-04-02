@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface TorneoService {
     List<Torneo> listAll();
-    Torneo caricaDettaglioSingoloTorneo(Long id, String username);
+    Torneo caricaDettaglioSingoloTorneo(Long id);
     Torneo inserisci(TorneoDTO dto, String username);
     Torneo aggiorna(Long id, TorneoDTO dto, String username);
     void elimina(Long id, String username);

@@ -1,9 +1,13 @@
 package com.chesstournament.service.utente;
 
+import com.chesstournament.dto.ResponseJSON;
+import com.chesstournament.dto.UtenteDTO;
 import com.chesstournament.model.Ruolo;
 import com.chesstournament.model.StatoUtente;
+import com.chesstournament.model.Torneo;
 import com.chesstournament.model.Utente;
 import com.chesstournament.repository.ruolo.RuoloRepository;
+import com.chesstournament.repository.torneo.TorneoRepository;
 import com.chesstournament.repository.utente.UtenteRepository;
 import com.chesstournament.security.SecurityUtils;
 import java.time.LocalDate;
@@ -11,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.chesstournament.service.torneo.TorneoService;
 import com.chesstournament.web.api.exception.BadRequestException;
 import com.chesstournament.web.api.exception.ForbiddenException;
 import com.chesstournament.web.api.exception.NotAllowedException;
@@ -25,13 +30,15 @@ public class UtenteServiceImpl implements UtenteService {
     private final PasswordEncoder passwordEncoder;
     private final RuoloRepository ruoloRepository;
     private final SecurityUtils securityUtils;
+    private final TorneoRepository torneoRepository;
 
     public UtenteServiceImpl(UtenteRepository utenteRepository, PasswordEncoder passwordEncoder,
-                             RuoloRepository ruoloRepository, SecurityUtils securityUtils) {
+                             RuoloRepository ruoloRepository, SecurityUtils securityUtils, TorneoRepository torneoRepository) {
         this.utenteRepository = utenteRepository;
         this.passwordEncoder = passwordEncoder;
         this.ruoloRepository = ruoloRepository;
         this.securityUtils = securityUtils;
+        this.torneoRepository = torneoRepository;
     }
 
     @Override
@@ -188,5 +195,122 @@ public class UtenteServiceImpl implements UtenteService {
         utente.setMontePremi(montePremiAttuale + importo);
 
         return utenteRepository.save(utente);
+    }
+
+    @Override
+    public Utente iscrivitiAlTorneo(Long idTorneo) {
+        String username = securityUtils.getUsername();
+        Utente utente = utenteRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Utente autenticato non trovato."));
+
+        if (utente.getTorneo() != null) {
+            throw new NotAllowedException("L'utente è già iscritto a un torneo.");
+        }
+
+        Torneo torneo = torneoRepository.findById(idTorneo)
+                .orElseThrow(() -> new RuntimeException("Torneo non trovato."));
+
+        Double montePremi = utente.getMontePremi() != null ? utente.getMontePremi() : 0d;
+        Double quotaIscrizione = torneo.getQuotaIscrizione() != null ? torneo.getQuotaIscrizione() : 0d;
+
+        if(montePremi < quotaIscrizione) {
+            throw new NotAllowedException("Non hai abbastanza credito per iscriverti a questo torneo.");
+        }
+        Integer eloUtente = utente.getEloRating() != null ? utente.getEloRating() : 0;
+        Integer eloMinimo = torneo.getEloMinimo() != null ? torneo.getEloMinimo() : 0;
+
+        if (eloUtente < eloMinimo) {
+            throw new BadRequestException("Elo rating insufficiente per iscriversi al torneo.");
+        }
+        utente.setMontePremi(montePremi - quotaIscrizione);
+        utente.setTorneo(torneo);
+
+        return utenteRepository.save(utente);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Torneo> ricercaTorneiCompatibili(String denominazione) {
+        String username = securityUtils.getUsername();
+        Utente utente = utenteRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Utente autenticato non trovato."));
+
+        Integer eloUtente = utente.getEloRating() != null ? utente.getEloRating() : 0;
+
+        List<Torneo> tornei = torneoRepository.findAll();
+
+        return tornei.stream()
+                .filter(torneo -> {
+                    Integer eloMinimo = torneo.getEloMinimo() != null ? torneo.getEloMinimo() : 0;
+                    return eloMinimo <= eloUtente;
+                })
+                .filter(torneo ->
+                        denominazione == null || denominazione.isBlank() ||
+                                torneo.getDenominazione().toLowerCase().contains(denominazione.toLowerCase())
+                )
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public ResponseJSON<UtenteDTO> giocaPartita(Long idTorneo) {
+        String username = securityUtils.getUsername();
+        Utente utente = utenteRepository.findByUsernameConTorneoEPartecipanti(username)
+                .orElseThrow(() -> new RuntimeException("Utente autenticato non trovato."));
+
+        if (utente.getTorneo() == null) {
+            throw new BadRequestException("Il giocatore non è iscritto ad alcun torneo.");
+        }
+
+        Torneo torneo = utente.getTorneo();
+
+        if (!torneo.getId().equals(idTorneo)) {
+            throw new BadRequestException("Il torneo indicato non coincide con quello in cui il giocatore è iscritto.");
+        }
+
+        if (torneo.getPartecipanti() == null || torneo.getPartecipanti().size() < 2) {
+            throw new BadRequestException("Non è possibile giocare una partita se non ci sono almeno 2 partecipanti al torneo.");
+        }
+
+        String messaggio = simulaPartita(utente);
+
+        Utente salvato = utenteRepository.save(utente);
+        UtenteDTO responseData = UtenteDTO.buildUtenteDTOFromModel(salvato);
+
+        return ResponseJSON.success(200, messaggio, responseData);
+    }
+
+
+    private String simulaPartita(Utente utente) {
+        double esito = Math.random();
+        int somma = (int) (Math.random() * 500);
+        int delta;
+        // 0.00 - 0.33 => sconfitta
+        // 0.33 - 0.66 => patta
+        // 0.66 - 1.00 => vittoria
+        if (esito < 0.33) {
+            delta = -somma;
+        } else if (esito < 0.66) {
+            delta = 0;
+        } else {
+            delta = somma;
+        }
+
+        double montePremiAttuale = utente.getMontePremi() != null ? utente.getMontePremi() : 0d;
+        double nuovoMontepremi = montePremiAttuale + delta;
+
+        String messaggio = "Partita simulata con successo.";
+
+        if (nuovoMontepremi < 0) {
+            nuovoMontepremi = 0;
+            messaggio = "credito esaurito";
+        }
+
+        int eloAttuale = utente.getEloRating() != null ? utente.getEloRating() : 0;
+
+        utente.setMontePremi(nuovoMontepremi);
+        utente.setEloRating(eloAttuale + 5); // incremento fisso ad ogni partita
+
+        return messaggio;
     }
 }

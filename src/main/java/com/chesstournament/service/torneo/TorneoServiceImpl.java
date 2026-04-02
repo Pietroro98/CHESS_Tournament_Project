@@ -39,8 +39,8 @@ public class TorneoServiceImpl implements TorneoService {
     }
 
     @Override
-    public Torneo caricaDettaglioSingoloTorneo(Long id, String username) {
-        throw new NotFoundException("nd");
+    public Torneo caricaDettaglioSingoloTorneo(Long id) {
+        return torneoRepository.findById(id).orElse(null);
     }
 
     @Override

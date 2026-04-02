@@ -1,5 +1,8 @@
 package com.chesstournament.service.utente;
+import com.chesstournament.dto.ResponseJSON;
+import com.chesstournament.dto.UtenteDTO;
 import com.chesstournament.model.Ruolo;
+import com.chesstournament.model.Torneo;
 import com.chesstournament.model.Utente;
 import java.util.List;
 
@@ -15,4 +18,8 @@ public interface UtenteService {
     Utente changeUserAbilitation(Long id);
     Utente findByUsername(String username);
     Utente ricaricaMontepremi(Double importo);
+
+    List<Torneo> ricercaTorneiCompatibili(String denominazione);
+    Utente iscrivitiAlTorneo(Long idTorneo);
+    ResponseJSON<UtenteDTO> giocaPartita(Long idTorneo);
 }
