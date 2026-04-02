@@ -3,17 +3,25 @@ import com.chesstournament.model.StatoTorneo;
 import com.chesstournament.model.Torneo;
 import com.chesstournament.model.Utente;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+
 import java.time.LocalDate;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TorneoDTO {
 
     private Long id;
+
+    @NotBlank
     private String denominazione;
     private LocalDate dataCreazione;
     private StatoTorneo stato;
+    @Min(0)
     private Integer eloMinimo;
+    @Min(0)
     private Double quotaIscrizione;
+    @Min(2)
     private Integer maxGiocatori;
     private Long utenteCreazioneId;
 

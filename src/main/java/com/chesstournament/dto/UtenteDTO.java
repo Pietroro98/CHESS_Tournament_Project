@@ -4,7 +4,10 @@ import com.chesstournament.model.StatoUtente;
 import com.chesstournament.model.Torneo;
 import com.chesstournament.model.Utente;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import org.hibernate.validator.constraints.UniqueElements;
+
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +33,8 @@ public class UtenteDTO {
 
     private LocalDate dataRegistrazione;
     private StatoUtente stato;
+
+    @Min(0)
     private Integer eloRating;
     private Double montePremi;
     private List<RuoloDTO> ruolo;
