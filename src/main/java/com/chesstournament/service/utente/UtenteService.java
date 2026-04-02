@@ -20,6 +20,8 @@ public interface UtenteService {
     Utente ricaricaMontepremi(Double importo);
 
     List<Torneo> ricercaTorneiCompatibili(String denominazione);
+    Torneo ultimoTorneoAttivo();
     Utente iscrivitiAlTorneo(Long idTorneo);
     ResponseJSON<UtenteDTO> giocaPartita(Long idTorneo);
+    Utente abbandonaTorneo();
 }

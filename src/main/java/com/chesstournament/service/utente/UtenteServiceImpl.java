@@ -2,10 +2,7 @@ package com.chesstournament.service.utente;
 
 import com.chesstournament.dto.ResponseJSON;
 import com.chesstournament.dto.UtenteDTO;
-import com.chesstournament.model.Ruolo;
-import com.chesstournament.model.StatoUtente;
-import com.chesstournament.model.Torneo;
-import com.chesstournament.model.Utente;
+import com.chesstournament.model.*;
 import com.chesstournament.repository.ruolo.RuoloRepository;
 import com.chesstournament.repository.torneo.TorneoRepository;
 import com.chesstournament.repository.utente.UtenteRepository;
@@ -14,8 +11,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.chesstournament.service.torneo.TorneoService;
 import com.chesstournament.web.api.exception.BadRequestException;
 import com.chesstournament.web.api.exception.ForbiddenException;
 import com.chesstournament.web.api.exception.NotAllowedException;
@@ -210,6 +205,10 @@ public class UtenteServiceImpl implements UtenteService {
         Torneo torneo = torneoRepository.findById(idTorneo)
                 .orElseThrow(() -> new RuntimeException("Torneo non trovato."));
 
+        if (StatoTorneo.IN_CORSO.equals(torneo.getStato()) || StatoTorneo.CONCLUSO.equals(torneo.getStato())) {
+            throw new NotAllowedException("Non è possibile iscriversi a un torneo già avviato o concluso.");
+        }
+
         Double montePremi = utente.getMontePremi() != null ? utente.getMontePremi() : 0d;
         Double quotaIscrizione = torneo.getQuotaIscrizione() != null ? torneo.getQuotaIscrizione() : 0d;
 
@@ -251,6 +250,16 @@ public class UtenteServiceImpl implements UtenteService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Torneo ultimoTorneoAttivo() {
+        String username = securityUtils.getUsername();
+        Utente utente = utenteRepository.findByUsernameConTorneoEPartecipanti(username)
+                .orElseThrow(() -> new RuntimeException("Utente autenticato non trovato."));
+
+        return utente.getTorneo();
+    }
+
 
     // POST /play/gioca/{id} -> 400 Bad Request, risposta con delta e nuovo saldo, busta "credito esaurito"
 
@@ -270,13 +279,19 @@ public class UtenteServiceImpl implements UtenteService {
         if (!torneo.getId().equals(idTorneo)) {
             throw new BadRequestException("Il torneo indicato non coincide con quello in cui il giocatore è iscritto.");
         }
-
         if (torneo.getPartecipanti() == null || torneo.getPartecipanti().size() < 2) {
             throw new BadRequestException("Non è possibile giocare una partita se non ci sono almeno 2 partecipanti al torneo.");
         }
-
         if(utente.getMontePremi().doubleValue() == 0) {
             throw new BadRequestException("Credito esaurito. Ricarica il tuo montepremi per poter giocare.");
+        }
+        if (StatoTorneo.CONCLUSO.equals(torneo.getStato())) {
+            throw new NotAllowedException("Non è possibile giocare un torneo concluso.");
+        }
+
+        //alla prima partita diventa in corso il torneo.
+        if (!StatoTorneo.IN_CORSO.equals(torneo.getStato())) {
+            torneo.setStato(StatoTorneo.IN_CORSO);
         }
         String messaggio = simulaPartita(utente);
 
@@ -326,5 +341,28 @@ public class UtenteServiceImpl implements UtenteService {
         utente.setEloRating(eloAttuale + 5); // incremento fisso ad ogni partita
 
         return messaggio;
+    }
+
+    @Override
+    @Transactional
+    public Utente abbandonaTorneo()
+    {
+        String username = securityUtils.getUsername();
+
+        Utente utente = utenteRepository.findByUsernameConTorneoEPartecipanti(username)
+                .orElseThrow(() -> new RuntimeException("Utente autenticato non trovato."));
+
+        if (utente.getTorneo() == null) {
+            throw new BadRequestException("Il giocatore non è iscritto ad alcun torneo.");
+        }
+
+        Torneo torneo = utente.getTorneo();
+
+        if (torneo.getPartecipanti() != null) {
+            torneo.getPartecipanti().remove(utente);
+        }
+        utente.setTorneo(null);
+
+        return utenteRepository.save(utente);
     }
 }

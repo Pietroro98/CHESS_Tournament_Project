@@ -3,6 +3,7 @@ import com.chesstournament.dto.ResponseJSON;
 import com.chesstournament.dto.RicaricaMontepremiDTO;
 import com.chesstournament.dto.TorneoDTO;
 import com.chesstournament.dto.UtenteDTO;
+import com.chesstournament.model.Torneo;
 import com.chesstournament.model.Utente;
 import com.chesstournament.service.torneo.TorneoService;
 import com.chesstournament.service.utente.UtenteService;
@@ -65,5 +66,25 @@ public class PlayController {
     @PostMapping("/gioca/{idTorneo}")
     public ResponseEntity<ResponseJSON<UtenteDTO>> giocaPartita(@PathVariable Long idTorneo) {
         return ResponseEntity.ok(utenteService.giocaPartita(idTorneo));
+    }
+
+    @GetMapping("/ultimo-torneo")
+    public ResponseEntity<TorneoDTO> ultimoTorneoAttivo() {
+        var torneo = utenteService.ultimoTorneoAttivo();
+        if (torneo == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(TorneoDTO.buildTorneoDTOFromModel(torneo));
+    }
+
+    @DeleteMapping("/abbandona")
+    public ResponseEntity<ResponseJSON<UtenteDTO>> abbandona() {
+        Utente utenteAggiornato = utenteService.abbandonaTorneo();
+        UtenteDTO responseData = UtenteDTO.buildUtenteDTOFromModel(utenteAggiornato);
+
+        return ResponseEntity.ok(
+                ResponseJSON.success(200, "Iscrizione al torneo effettuata con successo.", responseData)
+        );
     }
 }
