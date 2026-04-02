@@ -251,6 +251,9 @@ public class UtenteServiceImpl implements UtenteService {
                 .toList();
     }
 
+
+    // POST /play/gioca/{id} -> 400 Bad Request, risposta con delta e nuovo saldo, busta "credito esaurito"
+
     @Override
     @Transactional
     public ResponseJSON<UtenteDTO> giocaPartita(Long idTorneo) {
@@ -281,25 +284,33 @@ public class UtenteServiceImpl implements UtenteService {
     }
 
 
+    /**
+     * Metodo che inizia una simulazione della partita
+     * @param utente
+     * @return
+     */
     private String simulaPartita(Utente utente) {
         double esito = Math.random();
         int somma = (int) (Math.random() * 500);
+        String messaggio = "";
         int delta;
         // 0.00 - 0.33 => sconfitta
         // 0.33 - 0.66 => patta
         // 0.66 - 1.00 => vittoria
         if (esito < 0.33) {
             delta = -somma;
+            messaggio = "Hai perso la partita! Hai perso " + somma + " crediti.";
         } else if (esito < 0.66) {
             delta = 0;
+            messaggio = "Hai pareggiato la partita! Non hai guadagnato né perso crediti.";
         } else {
             delta = somma;
+            messaggio = "Hai vinto la partita! Hai guadagnato " + somma + " crediti.";
         }
 
         double montePremiAttuale = utente.getMontePremi() != null ? utente.getMontePremi() : 0d;
         double nuovoMontepremi = montePremiAttuale + delta;
 
-        String messaggio = "Partita simulata con successo.";
 
         if (nuovoMontepremi < 0) {
             nuovoMontepremi = 0;
