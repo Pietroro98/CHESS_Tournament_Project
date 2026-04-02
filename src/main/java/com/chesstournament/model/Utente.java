@@ -46,7 +46,7 @@ public class Utente {
     private StatoUtente stato;
 
     @Column(name = "eloRating")
-    private Integer eloRating;
+    private Integer eloRating = 0;
 
     @Column(name = "montePremi")
     private Double montePremi;

@@ -4,7 +4,6 @@ import com.chesstournament.dto.RicaricaMontepremiDTO;
 import com.chesstournament.dto.TorneoDTO;
 import com.chesstournament.dto.UtenteDTO;
 import com.chesstournament.model.Utente;
-import com.chesstournament.service.torneo.TorneoService;
 import com.chesstournament.service.utente.UtenteService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
