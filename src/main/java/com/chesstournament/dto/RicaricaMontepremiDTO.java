@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 public class RicaricaMontepremiDTO
 {
     @NotNull
-    @DecimalMin(value = "0.0", inclusive = false)
+    @DecimalMin(value = "5.00", message = "L'importo minimo per la ricarica è di 5.00")
     private Double importo;
 
     public Double getImporto() {
