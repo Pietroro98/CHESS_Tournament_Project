@@ -3,7 +3,6 @@ import com.chesstournament.dto.ResponseJSON;
 import com.chesstournament.dto.RicaricaMontepremiDTO;
 import com.chesstournament.dto.TorneoDTO;
 import com.chesstournament.dto.UtenteDTO;
-import com.chesstournament.model.Torneo;
 import com.chesstournament.model.Utente;
 import com.chesstournament.service.torneo.TorneoService;
 import com.chesstournament.service.utente.UtenteService;
@@ -17,11 +16,8 @@ import java.util.List;
 @RequestMapping("/api/play")
 public class PlayController {
 
-    private final TorneoService torneoService;
     private final UtenteService utenteService;
-
-    public PlayController(TorneoService torneoService, UtenteService utenteService) {
-        this.torneoService = torneoService;
+    public PlayController(UtenteService utenteService) {
         this.utenteService = utenteService;
     }
 
