@@ -74,12 +74,8 @@ public class PlayController {
     }
 
     @DeleteMapping("/abbandona")
-    public ResponseEntity<ResponseJSON<UtenteDTO>> abbandona() {
-        Utente utenteAggiornato = utenteService.abbandonaTorneo();
-        UtenteDTO responseData = UtenteDTO.buildUtenteDTOFromModel(utenteAggiornato);
-
-        return ResponseEntity.ok(
-                ResponseJSON.success(200, "Iscrizione al torneo effettuata con successo.", responseData)
-        );
+    public ResponseEntity<Void> abbandona() {
+        utenteService.abbandonaTorneo();
+        return ResponseEntity.noContent().build();
     }
 }
