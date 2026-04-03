@@ -265,8 +265,6 @@ public class UtenteServiceImpl implements UtenteService {
     }
 
 
-    // POST /play/gioca/{id} -> 400 Bad Request, risposta con delta e nuovo saldo, busta "credito esaurito"
-
     @Override
     @Transactional
     public ResponseJSON<UtenteDTO> giocaPartita(Long idTorneo) {
