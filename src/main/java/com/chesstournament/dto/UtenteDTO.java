@@ -89,6 +89,13 @@ public class UtenteDTO {
         return dto;
     }
 
+    public static UtenteDTO buildUtentePlayGameDTOFromModel(Utente model) {
+        UtenteDTO dto = new UtenteDTO();
+        dto.setEloRating(model.getEloRating());
+        dto.setMontePremi(model.getMontePremi());
+        return dto;
+    }
+
     public Long getId() {
         return id;
     }

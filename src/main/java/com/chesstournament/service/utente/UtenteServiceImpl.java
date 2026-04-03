@@ -298,7 +298,7 @@ public class UtenteServiceImpl implements UtenteService {
         String messaggio = simulaPartita(utente);
 
         Utente salvato = utenteRepository.save(utente);
-        UtenteDTO responseData = UtenteDTO.buildUtenteDTOFromModel(salvato);
+        UtenteDTO responseData = UtenteDTO.buildUtentePlayGameDTOFromModel(salvato);
 
         return ResponseJSON.success(200, messaggio, responseData);
     }
