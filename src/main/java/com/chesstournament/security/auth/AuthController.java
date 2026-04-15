@@ -1,5 +1,6 @@
 package com.chesstournament.security.auth;
 
+import com.chesstournament.dto.ResponseJSON;
 import com.chesstournament.model.Ruolo;
 import com.chesstournament.model.Utente;
 import com.chesstournament.repository.ruolo.RuoloRepository;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,13 +49,22 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public Map<String, Object> loginHandler(@RequestBody @Valid UtenteAuthLoginDTO body) {
+    public ResponseEntity<ResponseJSON<UtenteAuthJWTResponseDTO>> loginHandler(@RequestBody @Valid UtenteAuthLoginDTO body) {
         try {
             UsernamePasswordAuthenticationToken authInputToken =
                 new UsernamePasswordAuthenticationToken(body.getUsername(), body.getPassword());
             authManager.authenticate(authInputToken);
+
+            Utente utente = utenteService.findByUsername(body.getUsername());
+            List<String> roles = utente.getRuoli().stream().map(Ruolo::getCodice).toList();
+
             String token = jwtUtil.generateToken(body.getUsername());
-            return Collections.singletonMap("jwt-token", token);
+            UtenteAuthJWTResponseDTO responseData =
+                    new UtenteAuthJWTResponseDTO(token, body.getUsername(), roles);
+
+            return ResponseEntity.ok(
+                    ResponseJSON.success(200, "Login effettuato con successo", responseData)
+            );
         } catch (AuthenticationException authExc) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid Login Credentials");
         }
