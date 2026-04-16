@@ -48,7 +48,8 @@ public class UserInfo {
                 utenteLoggato.getMontePremi(),
                 torneo,
                 torneiCreati,
-                ruoli
+                ruoli,
+                utenteLoggato.getDataRegistrazione()
         );
 
         return ResponseEntity.ok(

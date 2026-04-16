@@ -2,6 +2,8 @@ package com.chesstournament.security.dto;
 
 import com.chesstournament.dto.TorneoDTO;
 import com.chesstournament.model.StatoUtente;
+
+import java.time.LocalDate;
 import java.util.List;
 
 public class UtenteInfoJWTResponseDTO {
@@ -16,10 +18,11 @@ public class UtenteInfoJWTResponseDTO {
     private TorneoDTO torneo;
     private List<TorneoDTO> torneiCreati;
     private List<String> roles;
+    private LocalDate dataRegistrazione;
 
     public UtenteInfoJWTResponseDTO(String nome, String cognome, String username, StatoUtente stato,
                                     Integer eloRating, Double montePremi, TorneoDTO torneo,
-                                    List<TorneoDTO> torneiCreati, List<String> roles) {
+                                    List<TorneoDTO> torneiCreati, List<String> roles, LocalDate dataRegistrazione) {
         this.nome = nome;
         this.cognome = cognome;
         this.username = username;
@@ -29,6 +32,7 @@ public class UtenteInfoJWTResponseDTO {
         this.torneo = torneo;
         this.torneiCreati = torneiCreati;
         this.roles = roles;
+        this.dataRegistrazione = dataRegistrazione;
     }
 
     public String getTokenType() {
@@ -109,5 +113,13 @@ public class UtenteInfoJWTResponseDTO {
 
     public void setTorneiCreati(List<TorneoDTO> torneiCreati) {
         this.torneiCreati = torneiCreati;
+    }
+
+    public LocalDate getDataRegistrazione() {
+        return dataRegistrazione;
+    }
+
+    public void setDataRegistrazione(LocalDate dataRegistrazione) {
+        this.dataRegistrazione = dataRegistrazione;
     }
 }

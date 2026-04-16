@@ -6,22 +6,23 @@ import com.chesstournament.model.Utente;
 import com.chesstournament.repository.ruolo.RuoloRepository;
 import com.chesstournament.repository.utente.UtenteRepository;
 import com.chesstournament.security.JWTUtil;
+import com.chesstournament.security.dto.UsernameCheckResponseDTO;
+import com.chesstournament.security.dto.UsernameRegisterCheckDTO;
 import com.chesstournament.security.dto.UtenteAuthJWTResponseDTO;
 import com.chesstournament.security.dto.UtenteAuthLoginDTO;
 import com.chesstournament.security.dto.UtenteAuthRegisterDTO;
 import com.chesstournament.service.utente.UtenteService;
 import com.chesstournament.web.api.exception.BadRequestException;
-import com.chesstournament.web.api.exception.NotAllowedException;
 import jakarta.validation.Valid;
-import java.util.Collections;
+import java.time.Year;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -77,10 +78,6 @@ public class AuthController {
             throw new BadRequestException("Attenzione, l'id non deve essere valorizzato in inserimento");
         }
 
-        if (utenteRepository.existsByUsername(body.getUsername())) {
-            throw new NotAllowedException("Attenzione, username già esistente");
-        }
-
         Ruolo defaultRole = ruoloRepository.findByCodice(Ruolo.ROLE_PLAYER)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Ruolo PLAYER non configurato"));
 
@@ -93,5 +90,72 @@ public class AuthController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(new UtenteAuthJWTResponseDTO(token, entity.getUsername(), roles));
+    }
+
+    @PostMapping("/check-username")
+    public ResponseEntity<ResponseJSON<UsernameCheckResponseDTO>> usernameCheck(@RequestBody @Valid UsernameRegisterCheckDTO body) {
+        boolean exists = utenteRepository.existsByUsername(body.getUsername());
+
+        if (exists) {
+            UsernameCheckResponseDTO responseData =
+                    new UsernameCheckResponseDTO(false, buildUsernameSuggeriti(body.getUsername()));
+
+            return ResponseEntity.ok(
+                    ResponseJSON.success(200, "Username non disponibile", responseData)
+            );
+        }
+
+        return ResponseEntity.ok(
+                ResponseJSON.success(200, "Username disponibile", new UsernameCheckResponseDTO(true, List.of()))
+        );
+    }
+
+    private List<String> buildUsernameSuggeriti(String username) {
+        // Normalizza il valore in ingresso ed evita null o stringhe vuote.
+        String normalized = username == null ? "" : username.trim();
+        if (normalized.isBlank()) {
+            normalized = "player";
+        }
+
+        // Mantiene solo lettere, numeri e underscore per costruire username validi.
+        String base = normalized.replaceAll("[^A-Za-z0-9_]", "");
+        if (base.isBlank()) {
+            base = "player";
+        }
+
+        // Rimuove gli underscore finali per evitare risultati tipo "Pietroro__2026".
+        base = base.replaceAll("_+$", "");
+        if (base.isBlank()) {
+            base = "player";
+        }
+
+        int currentYear = Year.now().getValue();
+        // LinkedHashSet preserva l'ordine ed evita suggerimenti duplicati.
+        LinkedHashSet<String> candidates = new LinkedHashSet<>();
+        candidates.add(base + "1");
+        candidates.add(base + "10");
+        candidates.add(base + "123");
+        candidates.add(base + "_" + currentYear);
+        candidates.add(base + "_" + (currentYear + 1));
+        candidates.add(base + "_01");
+        candidates.add(base + "_99");
+        candidates.add(base + "Chess");
+        candidates.add("real_" + base);
+        candidates.add(base + "_official");
+
+        List<String> availableSuggestions = new ArrayList<>();
+        for (String candidate : candidates) {
+            // Tiene solo i candidati non ancora presenti nel database.
+            if (!utenteRepository.existsByUsername(candidate)) {
+                availableSuggestions.add(candidate);
+            }
+
+            // Limita la risposta a 3 suggerimenti per non appesantire il payload.
+            if (availableSuggestions.size() == 3) {
+                break;
+            }
+        }
+
+        return availableSuggestions;
     }
 }
