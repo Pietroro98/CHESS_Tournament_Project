@@ -27,6 +27,10 @@ public class ResponseJSON<T> {
         return new ResponseJSON<>(status, messaggio, null);
     }
 
+    public static <T> ResponseJSON<T> error(int status, String messaggio, T data) {
+        return new ResponseJSON<>(status, messaggio, data);
+    }
+
     public Integer getStatus() {
         return status;
     }

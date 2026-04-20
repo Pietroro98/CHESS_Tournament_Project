@@ -3,6 +3,7 @@ package com.chesstournament.security;
 import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -47,8 +48,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
              .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll()
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/check-username").permitAll()
-                .requestMatchers("/api/utente/userInfo").authenticated()
+                .requestMatchers("/api/utente/userInfo", "/api/utente/changePassword").authenticated()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/tornei/**").hasAnyRole("ADMIN", "ORGANIZER", "PLAYER")
                 .requestMatchers("/api/tornei/**").hasAnyRole("ADMIN", "ORGANIZER")
                 .requestMatchers("/api/play/**").hasRole("PLAYER")
                 .anyRequest().authenticated())

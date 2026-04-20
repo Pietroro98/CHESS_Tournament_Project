@@ -1,7 +1,9 @@
 package com.chesstournament.service.utente;
 
+import com.chesstournament.dto.AdminUtenteUpdateDTO;
 import com.chesstournament.dto.ResponseJSON;
 import com.chesstournament.dto.UtenteDTO;
+import com.chesstournament.dto.UtenteUpdateDTO;
 import com.chesstournament.model.*;
 import com.chesstournament.repository.ruolo.RuoloRepository;
 import com.chesstournament.repository.torneo.TorneoRepository;
@@ -14,9 +16,11 @@ import java.util.stream.Collectors;
 import com.chesstournament.web.api.exception.BadRequestException;
 import com.chesstournament.web.api.exception.ForbiddenException;
 import com.chesstournament.web.api.exception.NotAllowedException;
+import com.chesstournament.web.api.exception.NotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.HandlerMapping;
 
 @Service
 public class UtenteServiceImpl implements UtenteService {
@@ -26,14 +30,16 @@ public class UtenteServiceImpl implements UtenteService {
     private final RuoloRepository ruoloRepository;
     private final SecurityUtils securityUtils;
     private final TorneoRepository torneoRepository;
+    private final HandlerMapping resourceHandlerMapping;
 
     public UtenteServiceImpl(UtenteRepository utenteRepository, PasswordEncoder passwordEncoder,
-                             RuoloRepository ruoloRepository, SecurityUtils securityUtils, TorneoRepository torneoRepository) {
+                             RuoloRepository ruoloRepository, SecurityUtils securityUtils, TorneoRepository torneoRepository, HandlerMapping resourceHandlerMapping) {
         this.utenteRepository = utenteRepository;
         this.passwordEncoder = passwordEncoder;
         this.ruoloRepository = ruoloRepository;
         this.securityUtils = securityUtils;
         this.torneoRepository = torneoRepository;
+        this.resourceHandlerMapping = resourceHandlerMapping;
     }
 
     @Override
@@ -98,6 +104,57 @@ public class UtenteServiceImpl implements UtenteService {
         if (contieneAdmin) {
             throw new NotAllowedException("Non è consentito assegnare il ruolo ADMIN");
         }
+
+        utenteReloaded.setRuoli(ruoliValidi);
+
+        return utenteRepository.save(utenteReloaded);
+    }
+
+    @Override
+    @Transactional
+    public Utente aggiornaComeAdmin(AdminUtenteUpdateDTO utenteUpdateDTO, Long id) {
+        Utente utenteReloaded = utenteRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Elemento non trovato."));
+        String usernameLoggato = securityUtils.getUsername();
+
+        if (utenteReloaded.isAdmin() && !usernameLoggato.equals(utenteReloaded.getUsername())) {
+            throw new ForbiddenException("Non puoi modificare un altro utente admin.");
+        }
+
+        utenteReloaded.setNome(utenteUpdateDTO.getNome());
+        utenteReloaded.setCognome(utenteUpdateDTO.getCognome());
+        utenteReloaded.setUsername(utenteUpdateDTO.getUsername());
+        utenteReloaded.setStato(utenteUpdateDTO.getStato());
+        utenteReloaded.setEloRating(utenteUpdateDTO.getEloRating());
+        utenteReloaded.setMontePremi(utenteUpdateDTO.getMontePremi());
+
+        if (utenteUpdateDTO.getPassword() != null && !utenteUpdateDTO.getPassword().isBlank()) {
+            utenteReloaded.setPassword(passwordEncoder.encode(utenteUpdateDTO.getPassword()));
+        }
+
+        if (utenteUpdateDTO.getTorneoId() != null) {
+            Torneo torneo = torneoRepository.findById(utenteUpdateDTO.getTorneoId())
+                    .orElseThrow(() -> new BadRequestException("Torneo non valido con id: " + utenteUpdateDTO.getTorneoId()));
+            utenteReloaded.setTorneo(torneo);
+        } else {
+            utenteReloaded.setTorneo(null);
+        }
+
+        if (utenteUpdateDTO.getRuoli() == null || utenteUpdateDTO.getRuoli().isEmpty()) {
+            throw new BadRequestException("Devi specificare almeno un ruolo");
+        }
+
+        Set<Ruolo> ruoliValidi = utenteUpdateDTO.getRuoli()
+                .stream()
+                .map(ruoloInput -> {
+                    if (ruoloInput.getId() == null) {
+                        throw new BadRequestException("Ogni ruolo deve avere un id");
+                    }
+
+                    return ruoloRepository.findById(ruoloInput.getId())
+                            .orElseThrow(() -> new BadRequestException(
+                                    "Ruolo non valido con id: " + ruoloInput.getId()));
+                }).collect(Collectors.toSet());
 
         utenteReloaded.setRuoli(ruoliValidi);
 
@@ -181,6 +238,43 @@ public class UtenteServiceImpl implements UtenteService {
 
     @Override
     @Transactional
+    public Utente aggiornaProfilo(UtenteUpdateDTO utenteUpdateDTO) {
+        String username = securityUtils.getUsername();
+        Utente utente = utenteRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Utente autenticato non trovato."));
+
+        utente.setNome(utenteUpdateDTO.getNome());
+        utente.setCognome(utenteUpdateDTO.getCognome());
+        utente.setUsername(utenteUpdateDTO.getUsername());
+
+        return utenteRepository.save(utente);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(String currentPassword, String newPassword, String confirmPassword) {
+        String username = securityUtils.getUsername();
+        Utente utente = utenteRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Utente autenticato non trovato."));
+
+        if (!passwordEncoder.matches(currentPassword, utente.getPassword())) {
+            throw new BadRequestException("La password attuale non è corretta.");
+        }
+
+        if (!newPassword.equals(confirmPassword)) {
+            throw new BadRequestException("La nuova password e la conferma password non coincidono.");
+        }
+
+        if (newPassword.equals(currentPassword)) {
+            throw new BadRequestException("La nuova password deve essere diversa da quella attuale.");
+        }
+
+        utente.setPassword(passwordEncoder.encode(newPassword));
+        utenteRepository.save(utente);
+    }
+
+    @Override
+    @Transactional
     public Utente ricaricaMontepremi(Double importo) {
         String username = securityUtils.getUsername();
         Utente utente = utenteRepository.findByUsername(username)
@@ -234,19 +328,9 @@ public class UtenteServiceImpl implements UtenteService {
     @Override
     @Transactional(readOnly = true)
     public List<Torneo> ricercaTorneiCompatibili(String denominazione) {
-        String username = securityUtils.getUsername();
-        Utente utente = utenteRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Utente autenticato non trovato."));
-
-        Integer eloUtente = utente.getEloRating() != null ? utente.getEloRating() : 0;
-
         List<Torneo> tornei = torneoRepository.findAll();
 
         return tornei.stream()
-                .filter(torneo -> {
-                    Integer eloMinimo = torneo.getEloMinimo() != null ? torneo.getEloMinimo() : 0;
-                    return eloMinimo <= eloUtente;
-                })
                 .filter(torneo ->
                         denominazione == null || denominazione.isBlank() ||
                                 torneo.getDenominazione().toLowerCase().contains(denominazione.toLowerCase())

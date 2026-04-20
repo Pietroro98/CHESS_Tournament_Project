@@ -27,7 +27,7 @@ public class CustomExceptionHandler  {
 
 		return ResponseEntity
 				.status(HttpStatus.BAD_REQUEST)
-				.body(ResponseJSON.success(HttpStatus.BAD_REQUEST.value(), "Errore di validazione", errors));
+				.body(ResponseJSON.error(HttpStatus.BAD_REQUEST.value(), "Errore di validazione", errors));
 	}
 
 	@ExceptionHandler(NotFoundException.class)

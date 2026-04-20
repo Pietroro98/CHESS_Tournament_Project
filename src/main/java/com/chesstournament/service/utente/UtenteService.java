@@ -1,6 +1,8 @@
 package com.chesstournament.service.utente;
+import com.chesstournament.dto.AdminUtenteUpdateDTO;
 import com.chesstournament.dto.ResponseJSON;
 import com.chesstournament.dto.UtenteDTO;
+import com.chesstournament.dto.UtenteUpdateDTO;
 import com.chesstournament.model.Ruolo;
 import com.chesstournament.model.Torneo;
 import com.chesstournament.model.Utente;
@@ -11,12 +13,15 @@ public interface UtenteService {
     Utente caricaSingoloUtente(Long id);
     Utente caricaSingoloUtenteConRuoli(Long id);
     Utente aggiorna(Utente utente, List<Ruolo> ruoliItem);
+    Utente aggiornaComeAdmin(AdminUtenteUpdateDTO utenteUpdateDTO, Long id);
     Utente inserisciNuovo(Utente utente);
     Utente disabilita(Long id);
     Utente findByUsernameAndPassword(String username, String password);
     Utente eseguiAccesso(String username, String password);
     Utente changeUserAbilitation(Long id);
     Utente findByUsername(String username);
+    Utente aggiornaProfilo(UtenteUpdateDTO utenteUpdateDTO);
+    void changePassword(String currentPassword, String newPassword, String confirmPassword);
     Utente ricaricaMontepremi(Double importo);
 
     List<Torneo> ricercaTorneiCompatibili(String denominazione);
