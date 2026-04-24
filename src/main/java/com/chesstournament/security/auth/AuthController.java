@@ -110,7 +110,60 @@ public class AuthController {
         );
     }
 
+    private static final String DEFAULT_P = "player";
+    private static final int MAX_SUGGERITI = 3;
+
+
+    /**
+     * Metodo che costruisce una lista di suggerimenti per username alternativi quando quello richiesto è già in uso.
+     * Utilizza una base normalizzata del nome richiesto e aggiunge numeri,
+     * l'anno corrente, suffissi  e prefissi per generare varianti plausibili.
+     * @param username
+     * @return
+     */
     private List<String> buildUsernameSuggeriti(String username) {
+        String base = normalizeUsername(username);
+        int year = Year.now().getValue();
+
+        List<String> candidates = List.of(
+                base + "1",
+                base + "10",
+                base + "123",
+                base + "_" + year,
+                base + "_" + (year + 1),
+                base + "_01",
+                base + "_99",
+                base + "Chess",
+                "real_" + base,
+                base + "_official"
+        );
+
+        return candidates.stream()
+                .filter(candidate -> !utenteRepository.existsByUsername(candidate))
+                .limit(MAX_SUGGERITI)
+                .toList();
+    }
+
+    /**
+     * metodo che normalizza l'username rimuovendo spazi,
+     * caratteri speciali e underscore finali,
+     * per costruire suggerimenti più puliti e validi.
+     * @param username
+     * @return
+     */
+    private String normalizeUsername(String username) {
+        if (username == null || username.isBlank()) {
+            return DEFAULT_P;
+        }
+
+        String base = username.trim()
+                .replaceAll("[^A-Za-z0-9_]", "")
+                .replaceAll("_+$", "");
+
+        return base.isBlank() ? DEFAULT_P : base;
+    }
+
+   /* private List<String> buildUsernameSuggeriti(String username) {
         // Normalizza il valore in ingresso ed evita null o stringhe vuote.
         String normalized = username == null ? "" : username.trim();
         if (normalized.isBlank()) {
@@ -130,7 +183,6 @@ public class AuthController {
         }
 
         int currentYear = Year.now().getValue();
-        // LinkedHashSet preserva l'ordine ed evita suggerimenti duplicati.
         LinkedHashSet<String> candidates = new LinkedHashSet<>();
         candidates.add(base + "1");
         candidates.add(base + "10");
@@ -157,5 +209,5 @@ public class AuthController {
         }
 
         return availableSuggestions;
-    }
+    } */
 }
